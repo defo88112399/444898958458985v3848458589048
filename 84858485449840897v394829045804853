@@ -1,7 +1,7 @@
--- Gui to Lua
--- Version: 3.2
+local on = true -- Change to false if you want script to not run.
+if not on then return end
+if game.PlaceId ~= 823323202 then return end
 
--- Instances:
 
 HunterHub = Instance.new("ScreenGui")
 HHFrame = Instance.new("Frame")

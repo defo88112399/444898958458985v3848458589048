@@ -3132,40 +3132,50 @@ FunctionTable['LoadSettings']()
 
 
 task.spawn(function()
-	for i,v in pairs(Player.PlayerGui:GetChildren()) do
-		if v.Name == "ScreenGui" and v:FindFirstChild("Frame") then
-			v:Destroy()
-		end
-	end
+    for i,v in pairs(Player.PlayerGui:GetChildren()) do
+        if v.Name == "ScreenGui" and v:FindFirstChild("Frame") then
+            v:Destroy()
+        end
+    end
+    repeat task.wait() until Players.LocalPlayer:FindFirstChild("PlayerGui")
+    local clone = Players.LocalPlayer.PlayerGui.PlayerScript:Clone()
+    clone.Parent = Players.LocalPlayer.PlayerGui
+    repeat task.wait() until Players.LocalPlayer:FindFirstChild("GuiScript")
+    local clone2 = Players.LocalPlayer.PlayerGui.GuiScript:Clone()
+    clone2.Parent = Players.LocalPlayer.PlayerGui
 end)
 
 Character:WaitForChild("Humanoid").Died:Connect(FunctionTable['HumDied'])
 
 Players.LocalPlayer.CharacterAdded:Connect(function(NewCharacter)
-	task.spawn(function()
-		task.wait(0.2)
-		Character = NewCharacter
-	end)
-	repeat task.wait() until Players.LocalPlayer:HasAppearanceLoaded()
-	if respos ~= nil then
-		for i = 1,5 do
-			NewCharacter:WaitForChild("HumanoidRootPart").CFrame = respos
-			task.wait()
-		end
-	end
-	repeat task.wait() until Players.LocalPlayer.Backpack:FindFirstChild("Train")
-	if VariableTable['NoTS'] == true then
-		FunctionTable.VariableFunctions['NoTS']()
-	end
-	NewCharacter:WaitForChild("Humanoid").Died:Connect(FunctionTable['HumDied'])
-	task.spawn(function()
-		for i,v in pairs(Player.PlayerGui:GetChildren()) do
-			if v.Name == "ScreenGui" and v:FindFirstChild("Frame") then
-				v:Destroy()
-			end
-		end
-	end)
-	charrespawning = false
+    task.spawn(function()
+        task.wait(0.25)
+        Character = NewCharacter
+    end)
+    repeat task.wait() until Players.LocalPlayer:HasAppearanceLoaded()
+    if respos ~= nil then
+        for i = 1,5 do
+            NewCharacter:WaitForChild("HumanoidRootPart").CFrame = respos
+            task.wait()
+        end
+    end
+    repeat task.wait() until Players.LocalPlayer.Backpack:FindFirstChild("Train")
+    if VariableTable['NoTS'] == true then
+        FunctionTable.VariableFunctions['NoTS']()
+    end
+    NewCharacter:WaitForChild("Humanoid").Died:Connect(FunctionTable['HumDied'])
+    task.spawn(function()
+        for i,v in pairs(Player.PlayerGui:GetChildren()) do
+            if v.Name == "ScreenGui" and v:FindFirstChild("Frame") then
+                v:Destroy()
+            end
+        end
+        local clone = Players.LocalPlayer.PlayerGui:WaitForChild("PlayerScript"):Clone()
+        clone.Parent = Players.LocalPlayer.PlayerGui
+        local clone2 = Players.LocalPlayer.PlayerGui:WaitForChild("GuiScript"):Clone()
+        clone2.Parent = Players.LocalPlayer.PlayerGui
+    end)
+    charrespawning = false
 end)
 
 Players.PlayerRemoving:Connect(function(removedPlr)

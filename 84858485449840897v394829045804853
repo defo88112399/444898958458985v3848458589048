@@ -1,7 +1,7 @@
-local on = true -- Change to false if you want script to not run.
-if not on then return end
-if game.PlaceId ~= 823323202 then return end
+-- Gui to Lua
+-- Version: 3.2
 
+-- Instances:
 
 HunterHub = Instance.new("ScreenGui")
 HHFrame = Instance.new("Frame")
@@ -1976,6 +1976,7 @@ local Players = game:GetService("Players")
 local UserInputService = game:GetService("UserInputService")
 local Player = Players.LocalPlayer
 local Character = Players.LocalPlayer.Character or Players.LocalPlayer.CharacterAdded:Wait()
+local VirtualUser = game:GetService("VirtualUser")
 local RunService = game:GetService("RunService")
 local filename = "Hunter Hub v3.1.0 Settings.txt"
 local Main = HunterHub
@@ -2268,36 +2269,32 @@ FunctionTable.VariableFunctions = {
 	end;
     ['AFShur'] = function()
 		if VariableTable['AFShur'] == true then
-			function throwShuriken()
-				local character = Player.Character or Player.CharacterAdded:Wait()
-				local head = Player.Character:WaitForChild("Head")
-				local direction = (head.Position - character.HumanoidRootPart.Position).unit
-				local spawnPosition = head.Position
-				local args = {
-					[1] = spawnPosition,
-					[2] = direction
-				}
-				local shuriken = Player.Backpack:FindFirstChild("Shuriken") or Character:FindFirstChild("Shuriken")
-				if shuriken then
-					if shuriken.Parent == Player.Backpack then
-						shuriken.Parent = Character
-					end
-					shuriken.HitEvent:FireServer(unpack(args))
-					if shuriken.Parent == Character then
-						shuriken.Parent = Player.Backpack
-					end
-				end
-			end
-			task.spawn(function()
-				while VariableTable['AFShur'] == true do
-					for _, player in ipairs(Players:GetPlayers()) do
-						if player ~= LocalPlayer then
-							throwShuriken(player)
+			coroutine.resume(coroutine.create(function()
+				function throwShuriken()
+					local character = Player.Character or Player.CharacterAdded:Wait()
+                    local head = Player.Character:WaitForChild("Head")
+                    local direction = (head.Position - character.HumanoidRootPart.Position).unit
+                    local spawnPosition = head.Position
+                    local args = {
+                        [1] = spawnPosition,
+                        [2] = direction
+                    }
+					local shuriken = Player.Backpack:FindFirstChild("Shuriken") or Character:FindFirstChild("Shuriken")
+					if shuriken then
+						if shuriken.Parent == Player.Backpack then
+							shuriken.Parent = Character
+						end
+						shuriken.HitEvent:FireServer(unpack(args))
+						if shuriken.Parent == Character then
+							shuriken.Parent = Player.Backpack
 						end
 					end
-					wait()
 				end
-			end)
+				while VariableTable['AFShur'] == true do
+					throwShuriken()
+					wait(fireDelay)
+				end
+			end))
 		end
 	end;
     ['FastSwitch'] = function()
@@ -2692,17 +2689,14 @@ FunctionTable.VariableFunctions = {
             HightLightPlayer = function(Player)
                 local Character = Player.Character or Player.CharacterAdded:Wait()
                 local Humanoid = Character:WaitForChild("Humanoid")
-
                 local Highlighter = Instance.new("Highlight", Character)
                 Highlighter.FillColor = Player.TeamColor and Player.TeamColor.Color or Color3.fromRGB(255, 48, 51)
-
                 local Billboard = Instance.new("BillboardGui", Character)
                 Billboard.Adornee = Character:WaitForChild("Head")
                 Billboard.Size = UDim2.new(0, 150, 0, 30)
                 Billboard.StudsOffset = Vector3.new(0, 3, 0)
                 Billboard.AlwaysOnTop = true
                 Billboard.MaxDistance = 1000000000000
-
                 local NameLabel = Instance.new("TextLabel", Billboard)
                 NameLabel.Size = UDim2.new(1, 0, 1, 0)
                 NameLabel.BackgroundTransparency = 1
@@ -2713,7 +2707,6 @@ FunctionTable.VariableFunctions = {
                 NameLabel.TextScaled = true
                 NameLabel.TextSize = 14
                 NameLabel.TextWrapped = true
-
                 function UpdateSize()
                     local camera = game.Workspace.CurrentCamera
                     local distance = (Character.Head.Position - camera.CFrame.Position).Magnitude
@@ -2722,28 +2715,28 @@ FunctionTable.VariableFunctions = {
                     NameLabel.Text = string.format("%s (%d HP)", Player.Name, Humanoid.Health)
                 end
                 UpdateSize()
-                game:GetService("RunService").Stepped:Connect(UpdateSize)
-                Humanoid.Changed:Connect(function()
+                table.insert(connections, game:GetService("RunService").Stepped:Connect(UpdateSize))
+                table.insert(connections, Humanoid.Changed:Connect(function()
                     if Humanoid.Health <= 0 then
                         Highlighter:Destroy()
                         Billboard:Destroy()
                     end
-                end)
+                end))
             end
             HightLightFunc = function(Player)
                 if Player.Character then
                     HightLightPlayer(Player)
                 end
-                Player.CharacterAdded:Connect(function()
+                table.insert(connections, Player.CharacterAdded:Connect(function()
                     HightLightPlayer(Player)
-                end)
+                end))
             end
             for _, Player in ipairs(game:GetService("Players"):GetPlayers()) do
                 HightLightFunc(Player)
             end
-            game:GetService("Players").PlayerAdded:Connect(function(Player)
+            table.insert(connections, game:GetService("Players").PlayerAdded:Connect(function(Player)
                 HightLightFunc(Player)
-            end)
+            end))
         elseif VariableTable['ESP'] == false then
             for _, Player in ipairs(game:GetService("Players"):GetPlayers()) do
                 if Player.Character then
@@ -2754,15 +2747,11 @@ FunctionTable.VariableFunctions = {
                         Player.Character:FindFirstChildOfClass("BillboardGui"):Destroy()
                     end
                 end
-                Player.CharacterAdded:Connect(function(Character)
-                    if Character:FindFirstChildOfClass("Highlight") then
-                        Character:FindFirstChildOfClass("Highlight"):Destroy()
-                    end
-                    if Character:FindFirstChildOfClass("BillboardGui") then
-                        Character:FindFirstChildOfClass("BillboardGui"):Destroy()
-                    end
-                end)
             end
+            for _, conn in ipairs(connections or {}) do
+                conn:Disconnect()
+            end
+            connections = {}
         end
     end;
     ['UseAllShur'] = function()
